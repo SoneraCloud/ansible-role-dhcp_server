@@ -1,31 +1,140 @@
-Role Name
-=========
+dhcp_server
+===========
 
-A brief description of the role goes here.
+This role installs and configures a DHCP server.
 
 Requirements
 ------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+This role requires Ansible 1.4 or higher and platform requirements are listed
+in the metadata file.
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+The variables that can be passed to this role and a brief description about
+them are as follows. These are all based on the configuration variables of the
+DHCP server configuration.
+
+    # Basic configuration information
+    dhcp_interfaces: eth0
+    dhcp_common_domain: example.org
+    dhcp_common_nameservers: ns1.example.org, ns2.example.org
+    dhcp_common_default_lease_time: 600
+    dhcp_common_max_lease_time: 7200
+    dhcp_common_ddns_update_style: none
+    dhcp_common_authoritative: true
+    dhcp_common_log_facility: local7
+    dhcp_common_options:
+    - opt66 code 66 = string
+    dhcp_common_parameters:
+    - filename "pxelinux.0"
+
+    # Subnet configuration
+    dhcp_subnets:
+    # Required variables example
+    - base: 192.168.1.0
+      netmask: 255.255.255.0
+    # Full list of possibilities
+    - base: 192.168.10.0
+      netmask: 255.255.255.0
+      range_start: 192.168.10.150
+      range_end: 192.168.10.200
+      routers: 192.168.10.1
+      broadcast_address: 192.168.10.255
+      domain_nameservers: 192.168.10.1, 192.168.10.2
+      domain_name: example.org
+      ntp_servers: pool.ntp.org
+      default_lease_time: 3600
+      max_lease_time: 7200
+      pools:
+      - range_start: 192.168.100.10
+        range_end: 192.168.100.20
+        rule: 'allow members of "foo"'
+        parameters:
+        - filename "pxelinux.0"
+      - range_start: 192.168.110.10
+        range_end: 192.168.110.20
+        rule: 'deny members of "foo"'
+      parameters:
+      - filename "pxelinux.0"
+
+    # Fixed lease configuration
+    dhcp_hosts:
+    - name: local-server
+      mac_address: "00:11:22:33:44:55"
+      fixed_address: 192.168.10.10
+      default_lease_time: 43200
+      max_lease_time: 86400
+      parameters:
+      - filename "pxelinux.0"
+
+    # Class configuration
+    dhcp_classes:
+    - name: foo
+      rule: 'match if substring (option vendor-class-identifier, 0, 4) = "SUNW"'
+    - name: CiscoSPA
+      rule: 'match if (( substring (option vendor-class-identifier,0,13) = "Cisco SPA504G" ) or
+             ( substring (option vendor-class-identifier,0,13) = "Cisco SPA303G" ))'
+      options:
+      - opt: 'opt66 "http://utils.opentech.local/cisco/cisco.php?mac=$MAU"'
+      - opt: 'time-offset 21600'
+
+    # Shared network configurations
+    dhcp_shared_networks:
+    - name: shared-net
+      subnets:
+      - base: 192.168.100.0
+        netmask: 255.255.255.0
+        routers: 192.168.10.1
+      parameters:
+      - filename "pxelinux.0"
+      pools:
+      - range_start: 192.168.100.10
+        range_end: 192.168.100.20
+        rule: 'allow members of "foo"'
+        parameters:
+        - filename "pxelinux.0"
+      - range_start: 192.168.110.10
+        range_end: 192.168.110.20
+        rule: 'deny members of "foo"'
+
+    # Custom if else clause
+      dhcp_ifelse:
+      - condition: 'exists user-class and option user-class = "iPXE"'
+        val: 'filename "http://my.web.server/real_boot_script.php";'
+        else:
+          - val: 'filename "pxeboot.0";'
+          - val: 'filename "pxeboot.1";'
+
+Examples
+========
+
+1) Install DHCP server on interface eth0 with one simple subnet:
+
+    - hosts: all
+      roles:
+      - role: dhcp_server
+        dhcp_interfaces: eth0
+        dhcp_common_domain: example.org
+        dhcp_common_nameservers: ns1.example.org, ns2.example.org
+        dhcp_common_default_lease_time: 600
+        dhcp_common_max_lease_time: 7200
+        dhcp_common_ddns_update_style: none
+        dhcp_common_authoritative: true
+        dhcp_common_log_facility: local7
+        dhcp_subnets:
+        - base: 192.168.10.0
+          netmask: 255.255.255.0
+          range_start: 192.168.10.150
+          range_end: 192.168.10.200
+          routers: 192.168.10.1
+
 
 Dependencies
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
-
-Example Playbook
-----------------
-
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
-
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+None
 
 License
 -------
@@ -35,4 +144,6 @@ BSD
 Author Information
 ------------------
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+Philippe Dellaert
+
+
