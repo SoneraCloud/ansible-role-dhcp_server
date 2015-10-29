@@ -1,7 +1,8 @@
 ---
-dhcp_interfaces: eth0
+dhcp_interfaces: br_int
 
 dhcp_subnets: []
 dhcp_hosts: []
 dhcp_classes: []
 dhcp_shared_networks: []
+dhcp_common_options: []
