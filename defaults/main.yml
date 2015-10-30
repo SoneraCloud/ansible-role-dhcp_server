@@ -6,3 +6,5 @@ dhcp_hosts: []
 dhcp_classes: []
 dhcp_shared_networks: []
 dhcp_common_options: []
+dhcp_common_domain: "example.com"
+dhcp_tftp_server_ip: "10.1.1.1"
