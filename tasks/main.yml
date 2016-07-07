@@ -31,4 +31,4 @@
 
 # Enable DHCP server
 - name: Start the dhcp services DHCP
-  service: name={{ dhcp_service }} enabled=yes  
+  service: name={{ dhcp_service }} enabled=yes state=started 
