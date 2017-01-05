@@ -16,8 +16,17 @@
   pacman: name={{ dhcp_server_package }} state=installed update_cache=yes
   when: ansible_os_family == 'Archlinux'
 
-- name: create a dummy nodes.conf file
+- name: Create the dhcpd.d directory
+  file: state=directory path=/etc/dhcp/dhcpd.d owner=root mode=0755
+
+- name: Create a dummy nodes.conf file
   file: state=touch path=/etc/dhcp/dhcpd.d/nodes.conf owner=root mode=0644
+
+- name: Create a dummy ipxe.conf file
+  file: state=touch path=/etc/dhcp/dhcpd.d/ipxe.conf owner=root mode=0644
+
+- name: Create a dummy dhcp_pxe_nodes.conf file
+  file: state=touch path=/etc/dhcp/dhcpd.d/dhcp_pxe_nodes.conf owner=root mode=0644
 
 # Generate configuration
 - name: Generate dhcpd.conf
